@@ -4,27 +4,48 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float speed = 8.0f;
-    private Rigidbody playerRb;
     private float horizontalInput;
+    private float speed = 8.0f;
+    private float xRange = 3.6f;
     public GameObject projectilePrefab;
 
-    // Start is called before the first frame update
-    void Start()
+
+    // Update is called once per frame
+    void Update()
     {
-        playerRb = GetComponent<Rigidbody>();
+        LimitedBound();
+
+        PlayerMove();
+
+        PlayerFire();
+    }
+
+    void LimitedBound()
+    {
+        // Check for left and right bounds
+        if (transform.position.x < -xRange)
+        {
+            transform.position = new Vector3(-xRange, transform.position.y, transform.position.z);
+        }
+
+        if (transform.position.x > xRange)
+        {
+            transform.position = new Vector3(xRange, transform.position.y, transform.position.z);
+        }
     }
 
     void PlayerMove()
     {
+        // Player movement left to right
         horizontalInput = Input.GetAxis("Horizontal");
         transform.Translate(Vector3.right * Time.deltaTime * speed * horizontalInput);
     }
 
-    void SpawnProjectile()
+    void PlayerFire()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            // Get an object object from the pool
             GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject();
             if (pooledProjectile != null)
             {
@@ -32,11 +53,5 @@ public class PlayerController : MonoBehaviour
                 pooledProjectile.transform.position = transform.position; // position it at player
             }
         }
-    }
-
-    void Update()
-    {
-        PlayerMove();
-        SpawnProjectile();
     }
 }
