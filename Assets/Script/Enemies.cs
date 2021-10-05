@@ -2,8 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Enemies : MonoBehaviour
 {
+    private float m_speed = 4.0f;
+    public float speed
+    {
+        get { return m_speed; }
+        set
+        {
+            if (value < 1)
+            {
+                Debug.Log("You can't set enemy's speed less than 0!");
+            }
+            else
+            {
+                m_speed = value;
+            }
+        }
+    }
+
     private int m_enemyHealth = 1;
     public int enemyHealth
     {
@@ -12,7 +30,7 @@ public class Enemies : MonoBehaviour
         {
             if (value < 1)
             {
-                Debug.LogError("You can't set enemy's health less than 1!");
+                Debug.Log("You can't set enemy's health less than 1!");
             }
             else
             {
@@ -21,33 +39,46 @@ public class Enemies : MonoBehaviour
         }
     }
 
-    public virtual void OnTriggerEnter(Collider other)
+    private MainManager Manager;
+
+    void Awake()
     {
-        if (other.tag == "projectile")
-        {
-            other.gameObject.SetActive(false);
-        }
-
-        if (other.tag == "PatientSensor")
-        {
-            Destroy(gameObject);
-        }
-
-        if (other.tag == "Player")
-        {
-            other.gameObject.SetActive(false);
-        }
-
-        DestroyEnemy();
+        Manager = GameObject.Find("MainManager").GetComponent<MainManager>();
     }
 
-    void DestroyEnemy()
+    void Update()
+    {
+        Move();
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("projectile"))
+        {
+            other.gameObject.SetActive(false);
+            EnemyDamged();
+        }
+
+        if (other.gameObject.CompareTag("Player"))
+        {
+            Destroy(other.gameObject);
+            Manager.GameOver();
+        }
+    }
+
+    void EnemyDamged()
     {
         m_enemyHealth--;
-        Debug.Log($"Enemy damged -1, health = {m_enemyHealth}");
+        Debug.Log($"Enemy is damge, {m_enemyHealth}");
         if (m_enemyHealth < 1)
         {
-            Destroy(gameObject);
+            transform.position = new Vector3(0f, 0f, 8f);
+            Debug.Log($"Enemy dead!");
         }
+    }
+
+    void Move()
+    {
+        transform.Translate(Vector3.back * m_speed * Time.deltaTime);
     }
 }
